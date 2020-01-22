@@ -1,0 +1,85 @@
+<?php
+
+// Подключаем файлы
+define('ROOT', dirname(__FILE__)); // Создаем констанну (Адрес корневой папки парсера).
+
+// Подключаем авто-загрузчик классов.
+require(ROOT . '/vendor/autoload.php');
+
+// Пространство имен кслассов.
+use classes\AllContent;
+use classes\Links;
+use classes\Image;
+use classes\Report;
+
+
+echo "\n+----------------------------------------------------------+
+|------------->   ПАРСЕР ССЫЛОК И КАРТИНОК   <-------------|
++----------------------------------------------------------+\n";
+
+//Выбор команды действия
+echo "Список возможных команд: " . "\e[1m help \e[0m\n\n";
+$comand = readline('Введите команду для выполнения: ');
+
+function comand_cli($comand)
+{
+    switch ($comand) {
+        case 'parse':
+            $url = readline('Введите адрес страницы для парсенга: ');
+            $content = new AllContent($url);
+            $site_content = $content->siteContent(); // Все содержимое на указаной странице.
+
+            $link = new Links;
+            $list_links = $link->listLinks($site_content, $url); // Список ссылок на указаном адрессе.
+
+            $image = new Image;
+            $list_image = $image->listImage($site_content, $url); // Список картинок на указаном адрессе.
+
+            $report = new Report;
+            if(!is_dir(ROOT . '/report_files/')) {
+                mkdir(ROOT . '/report_files/',0700);
+            }
+            $report->reportCSV($list_links, '' . ROOT . '/report_files/' . DOMAIN . '_List_Links.csv'); // Сохраняем список ссылок.
+            $report->reportCSV($list_image, '' . ROOT . '/report_files/' . DOMAIN . '_List_Image.csv'); // Сохраняем список изображений.
+
+            echo "\n\nНайдено ссылок: " . (count($list_links) - 2) .
+                "\nНайдено изображений: " . (count($list_image) - 2) .
+                "\n\nСписок найденых ссылок: " . ROOT . '/report_files/' . DOMAIN . '_List_Links.csv' .
+                "\nСписок найденых изображений: " . ROOT . '/report_files/' . DOMAIN . '_List_Image.csv' . "\n";
+
+            $sub_comand = readline("\nВведите команду для выполнения: ");
+            comand_cli($sub_comand);
+            break;
+
+        case 'help':
+            echo "\nparse - Запускает парсер. Принимает обязательный параметр URL (как с протоколом, так и без)." .
+                "\nreport - Выводит в консоль результаты анализа для домена." .
+                "\nhelp - Выводит список команд, с пояснениями." .
+                "\nexit - Выход из приложения.\n\n";
+
+            $sub_comand = readline("\nВведите команду для выполнения: ");
+            comand_cli($sub_comand);
+            break;
+
+        case 'report':
+            $report_list = new Report;
+            $domain = readline('Введите домен страницы, для поиска соответствия, найденых даных: ');
+            $report_list->viewsReportCSV($domain);
+
+            $sub_comand = readline("\nВведите команду для выполнения: ");
+            comand_cli($sub_comand);
+            break;
+
+        case 'exit':
+            exit;
+            break;
+
+        default:
+            comand_cli('help');
+
+            $sub_comand = readline("\nВведите команду для выполнения: ");
+            comand_cli($sub_comand);
+            break;
+    }
+}
+comand_cli($comand);

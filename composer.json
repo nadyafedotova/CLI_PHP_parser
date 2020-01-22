@@ -1,0 +1,17 @@
+{
+    "name": "fedotova/cli",
+    "description": "cli url parser for collect image links in .csv files",
+    "authors": [
+        {
+            "name": "Nadya Fedotova",
+            "email": "nadyafv@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}
